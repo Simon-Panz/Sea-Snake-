@@ -312,7 +312,7 @@ def update(dt):
         if fish == 0:
             fish += 1
             for n in range(fish):
-                n = {"x": random.randint(0, 28), "y": random.randint(0, 14)}
+                n = {"x": random.randint(0, 27), "y": random.randint(0, 13)}
                 fishlist.append(n)
 
     fishcheck()
