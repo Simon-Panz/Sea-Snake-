@@ -41,7 +41,7 @@ def draw():
 
     # Titelbild
     if gamestate == "intro":
-        direction = 0	# Richtung auf "none" setzen, sonst bewegt sich die Figur wieder, wenn man zurück ins Spiel geht
+        direction = 0	# Richtung auf 0 setzen, sonst bewegt sich die Figur wieder, wenn man zurück ins Spiel geht
         gamestate_intro(image, gelb, blue)
 
 
@@ -118,7 +118,7 @@ def draw():
 
 # Verarbeite gedrückte Taste (wird bei Tastendruck aufgerufen)
 def on_key_down(key):
-    global gamestate, direction, fish, fishlist
+    global gamestate, direction, fish, fishlist, player
     # Beendet Programm, falls Escape-Taste gedrückt wurde
     if key == keys.ESCAPE and gamestate == "intro":
         Pyghthouse.close(conn)
@@ -134,6 +134,7 @@ def on_key_down(key):
         direction = 0
         fishlist = []
         fish = 0
+        player[1:] = []
     # Richtung nach links ändern
     elif key == keys.LEFT or key == keys.A:
         direction = "left"
