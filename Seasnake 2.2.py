@@ -122,6 +122,9 @@ def on_key_down(key):
     # Mit Escape-Taste kommt man zurück zum Titelbild, falls man im Spiel ist
     elif key == keys.ESCAPE and gamestate == "game":
         gamestate = "intro"
+    # Mit esc auch aus Gameover Screen ins Spiel zurück
+    elif key == keys.ESCAPE and gamestate == "gameover":
+        gamestate = "game"
     # Mit Space-Taste kommt man ins Spiel, wenn man gerade nicht im Spiel ist
     elif key == keys.SPACE and gamestate != "game":
         gamestate = "game"
@@ -147,10 +150,7 @@ def on_key_down(key):
 
 # Aktualisiere Spielzustand (wird ca. 60-mal pro Sekunde aufgerufen)
 def update(dt):
-    global gamestate
-    global fish
-    global fishlist
-    global player
+    global gamestate, fish, fishlist, player
 
     # Fish
     def fishcheck():
