@@ -17,6 +17,8 @@ player = [{"x": 14, "y": 7}]
 gamestate = "intro"	# Spielstatus zu Beginn "intro"
 direction = 0		# zu Beginn keine Richtung
 player_len = 1      # Spielerlänge zu Beginn
+difficulty = "easy"
+danger = False
 
 # Fish
 fish = 0
@@ -76,11 +78,16 @@ def draw():
 
 # Verarbeite gedrückte Taste (wird bei Tastendruck aufgerufen)
 def on_key_down(key):
-    global gamestate, direction, fish, fishlist, player, player_len
+    global gamestate, direction, fish, fishlist, player, player_len, difficulty
     # Beendet Programm, falls Escape-Taste gedrückt wurde
     if key == keys.ESCAPE and gamestate == "intro":
         Pyghthouse.close(conn)
         exit()
+    # Schwierigkeitsgrad
+    elif key == keys.E and gamestate == "intro":
+        difficulty = "easy"
+    elif key == keys.R and gamestate == "intro":
+        difficulty = "hard"
     # Mit Escape-Taste kommt man zurück zum Titelbild, falls man im Spiel ist
     elif key == keys.ESCAPE and gamestate == "game":
         gamestate = "intro"
@@ -110,7 +117,10 @@ def on_key_down(key):
 
 # Aktualisiere Spielzustand (wird ca. 60-mal pro Sekunde aufgerufen)
 def update(dt):
-    global gamestate, fish, fishlist, player, direction, player_len
+    global gamestate, fish, fishlist, player, direction, player_len, danger, difficulty
+    # Hard Diff delayed Death
+    if difficulty == "hard" and danger == True:
+        gamestate = "gameover"
 
     # Fish
     def fishcheck():
@@ -148,22 +158,31 @@ def update(dt):
         elif direction == "up":
             head["y"] -= 1
 
-        # Wenn Schlange auf Wand trifft, gameover:
-        if head["x"] == -1 or head["x"] == 28 or head["y"] == -1 or head["y"] == 14:
-            gamestate = "gameover"
-        elif head in fishlist:  # Schlange verlängern, falls man auf Fisch trifft
-            player.insert(0, head)
-            player_len += 1
-            if player_len == 392:
-                gamestate = "win"
-        else:  # Schlange bewegen, gleiche Länge
-            player.insert(0, head)
-            player.pop(-1)
-        if head in player[1:]:  # Schlange trifft sich selbst, gameover
-            gamestate = "gameover"
+        # Wenn Schlange auf Wand oder Schwanz trifft, gameover:
+        if head["x"] == -1 or head["x"] == 28 or head["y"] == -1 or head["y"] == 14 or head in player[1:]:
+            if difficulty == "easy":
+                if danger == False:
+                    danger = True
+                else:
+                    gamestate = "gameover"
+            else:
+                danger = True
+
+        else:
+            if difficulty == "easy":
+                danger = False
+            if head in fishlist:  # Schlange verlängern, falls man auf Fisch trifft
+                player.insert(0, head)
+                player_len += 1
+                if player_len == 392:
+                    gamestate = "win"
+            else:  # Schlange bewegen, gleiche Länge
+                player.insert(0, head)
+                player.pop(-1)
 
         if gamestate == "intro" or gamestate == "gameover":
             direction = 0  # Richtung auf 0 setzen, sonst bewegt sich die Figur wieder, wenn man zurück ins Spiel geht
+            danger = False
 
 
 # Starte Pygame Zero
