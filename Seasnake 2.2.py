@@ -135,18 +135,18 @@ def on_key_down(key):
         fishlist = []
         fish = 0
         player[1:] = []
-    # Richtung nach links ändern
-    elif key == keys.LEFT or key == keys.A:
-        direction = "left"
-    # Richtung nach rechts ändern
-    elif key == keys.RIGHT or key == keys.D:
-        direction = "right"
-    # Richtung nach unten ändern
-    elif key == keys.DOWN or key == keys.S:
-        direction = "down"
-    # Richtung nach oben ändern
-    elif key == keys.UP or key == keys.W:
-        direction = "up"
+     # Richtung nach links ändern
+     elif (key == keys.LEFT or key == keys.A) and direction != "right":
+             direction = "left"
+     # Richtung nach rechts ändern
+     elif (key == keys.RIGHT or key == keys.D) and direction != "left":
+             direction = "right"
+     # Richtung nach unten ändern
+     elif (key == keys.DOWN or key == keys.S) and direction != "up":
+             direction = "down"
+     # Richtung nach oben ändern
+     elif (key == keys.UP or key == keys.W) and direction != "down":
+             direction = "up"
 
 
 # Aktualisiere Spielzustand (wird ca. 60-mal pro Sekunde aufgerufen)
