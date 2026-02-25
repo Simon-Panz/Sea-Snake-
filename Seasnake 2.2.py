@@ -72,19 +72,15 @@ def draw():
         
             # Bewege Spielfigur nach links, wenn Richtung = "left":
             if direction == "left":
-                if head["x"] > 0:
                     head["x"] -= 1
             # Bewege Spielfigur nach rechts, wenn Richtung = "right":
             elif direction == "right":
-                if head["x"] < 27:
                     head["x"] += 1
             # Bewege Spielfigur nach unten, wenn Richtung = "down":
             elif direction == "down":
-                if head["y"] < 13:
                     head["y"] += 1
             # Bewegt Spielfigur nach unten, wenn Richtung = "down"
             elif direction == "up":
-                if head["y"] > 0:
                     head["y"] -= 1
             
             # Wenn Schlange auf Wand trifft, gameover:
