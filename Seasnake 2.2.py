@@ -1,3 +1,4 @@
+
 from pyghthouse import Pyghthouse
 from lighthouse_login import username, token
 import pgzrun
@@ -20,9 +21,17 @@ player_len = 1      # Spielerlänge zu Beginn
 difficulty = "easy"
 danger = False
 
+speed = 0.25		# Geschwindigkeit der Schlange, Verzögerung in Sekunden
+level = 0
+wall_behavior = 1		# 1 = Schlange stirbt bei Wand, 2 = Schlange kann durch die Wand gehen und kommt an der anderen seite wieder raus
+
+automatic = 0		# automatischer Modus, 1 = Schlange bewegt sich von alleine
+
 # Fish
 fish = 0
 fishlist = []
+fish_amount = 5		# Menge an Fischen
+fish_move = 0		# 1 = Fische bewegen sich, 0 = Fische bewegen sich nicht
 
 # Funktion für blauen Farbverlauf
 def blue(y):
@@ -50,7 +59,8 @@ def draw():
             for x in range(28):
                 image[y][x] = blue(y)
         # Fish färben
-        image[fishlist[0]["y"]][fishlist[0]["x"]] = (255, 102, 255)
+        for n in range(len(fishlist)):
+            image[fishlist[n]["y"]][fishlist[n]["x"]] = (255, 102, 255)
 
         # Player färben
         for n in range(len(player)):
@@ -59,7 +69,7 @@ def draw():
             else:
                 image[player[n]["y"]][player[n]["x"]] = (255, 255, 0)
     
-        sleep(0.25)		#Geschwindigkeit vom Player
+        sleep(speed)		#Geschwindigkeit vom Player
 
     # Game Over Screen
     elif gamestate == "gameover":
@@ -101,16 +111,16 @@ def on_key_down(key):
         fish = 0
         player[1:] = []
         player_len = 1
-     # Richtung nach links ändern
+    # Richtung nach links ändern
     elif (key == keys.LEFT or key == keys.A) and direction != "right":
              direction = "left"
-     # Richtung nach rechts ändern
+    # Richtung nach rechts ändern
     elif (key == keys.RIGHT or key == keys.D) and direction != "left":
              direction = "right"
-     # Richtung nach unten ändern
+    # Richtung nach unten ändern
     elif (key == keys.DOWN or key == keys.S) and direction != "up":
              direction = "down"
-     # Richtung nach oben ändern
+    # Richtung nach oben ändern
     elif (key == keys.UP or key == keys.W) and direction != "down":
              direction = "up"
 
@@ -124,21 +134,52 @@ def update(dt):
 
     # Fish
     def fishcheck():
-        global fishlist
-        global fish
-        if fish == 0:
-            while fish == 0:
-                n = {"x": random.randint(0, 27), "y": random.randint(0, 13)}
-                if n not in player:
-                    fishlist.append(n)
-                    fish += 1
+        global fishlist, fish
+        
+        while fish < fish_amount:	# erstellt so viele Fische, wie man vorher festlegt
+            fish += 1
+            n = {"x": random.randint(0, 27), "y": random.randint(0, 13)}	# random Koordinaten generieren
+            if n in fishlist or n in player:	# neuer Fisch darf nicht auf einem anderen Fisch oder in der Schlange erscheinen
+                fish -= 1
+            else:
+                fishlist.append(n)	# Fisch an die Liste aller Fische anhängen
 
-    fishcheck()
-    # CONSUME
-    if fishlist[0]["y"] == player[0]["y"] and fishlist[0]["x"] ==  player[0]["x"]:
-        fish -= 1
-        fishlist.pop(0)
-    fishcheck()
+    def fishmove():		# Fische können sich random bewegen
+        global fishlist
+        for n in range(len(fishlist)):
+            if random.randint(0,10) == 1:	# nicht immer bewegen, sondern nur in 1 von 10 Fällen
+                x = fishlist[n]["x"] + random.randint(-1, 1)
+                if x < 0:
+                    x = 27
+                elif x > 27:
+                    x = 0
+                y = fishlist[n]["y"] + random.randint(-1, 1)
+                if y < 0:
+                    y = 13
+                elif y > 13:
+                    y = 0
+
+                fishlist[n] = {"x": x, "y": y}
+
+
+    if gamestate == "game":
+        
+        # CONSUME:
+        if player[0] in fishlist:
+            fish -= 1
+            fishlist.pop(fishlist.index(player[0]))
+        fishcheck()
+        if fish_move == 1:
+            fishmove()
+
+    # eine automatischer Schlangenmodus, wo sich die Schlange automatisch random bewegt:
+    if automatic == 1:		
+        if random.randint(0,10) == 5:
+            a = random.choice(["left","right","up","down"])
+            if (a == "left" and direction == "right") or (a == "right" and direction == "left") or (a == "up" and direction == "down")or (a == "down" and direction == "up"):
+                pass
+            else:
+                direction = a
 
     # Bewegung der Schlange
     if direction != 0:
@@ -147,16 +188,24 @@ def update(dt):
 
         # Bewege Spielfigur nach links, wenn Richtung = "left":
         if direction == "left":
-            head["x"] -= 1
+                head["x"] -= 1
+                if head["x"] == -1 and wall_behavior == 2:
+                    head["x"] = 27
         # Bewege Spielfigur nach rechts, wenn Richtung = "right":
         elif direction == "right":
-            head["x"] += 1
+                head["x"] += 1
+                if head["x"] == 28 and wall_behavior == 2:
+                    head["x"] = 0
         # Bewege Spielfigur nach unten, wenn Richtung = "down":
         elif direction == "down":
-            head["y"] += 1
+                head["y"] += 1
+                if head["y"] == 14 and wall_behavior == 2:
+                    head["y"] = 0
         # Bewegt Spielfigur nach unten, wenn Richtung = "down"
         elif direction == "up":
-            head["y"] -= 1
+                head["y"] -= 1
+                if head["y"] == -1 and wall_behavior == 2:
+                    head["y"] = 13
 
         # Wenn Schlange auf Wand oder Schwanz trifft, gameover:
         if head["x"] == -1 or head["x"] == 28 or head["y"] == -1 or head["y"] == 14 or head in player[1:]:
@@ -187,3 +236,4 @@ def update(dt):
 
 # Starte Pygame Zero
 pgzrun.go()
+
