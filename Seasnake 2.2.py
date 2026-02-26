@@ -31,7 +31,7 @@ automatic = 0		# automatischer Modus, 1 = Schlange bewegt sich von alleine
 fish = 0
 fishlist = []
 fish_amount = 5		# Menge an Fischen
-fish_move = 0		# 1 = Fische bewegen sich, 0 = Fische bewegen sich nicht
+fish_move = 1		# 1 = Fische bewegen sich, 0 = Fische bewegen sich nicht
 
 # Funktion für blauen Farbverlauf
 def blue(y):
@@ -158,8 +158,8 @@ def update(dt):
                     y = 13
                 elif y > 13:
                     y = 0
-
-                fishlist[n] = {"x": x, "y": y}
+                if {"x": x, "y": y} not in player and {"x": x, "y": y} not in fishlist:
+                    fishlist[n] = {"x": x, "y": y}
 
 
     if gamestate == "game":
@@ -168,7 +168,10 @@ def update(dt):
         if player[0] in fishlist:
             fish -= 1
             fishlist.pop(fishlist.index(player[0]))
+            sounds.chomp.play()
         fishcheck()
+
+
         if fish_move == 1:
             fishmove()
 
@@ -236,4 +239,6 @@ def update(dt):
 
 # Starte Pygame Zero
 pgzrun.go()
+
+
 
