@@ -179,7 +179,7 @@ def on_key_down(key):
 
 # Aktualisiere Spielzustand (wird ca. 60-mal pro Sekunde aufgerufen)
 def update(dt):
-    global gamestate, fish, fishlist, snake, direction, snake_len, danger, difficulty, score, player, head
+    global gamestate, fish, fishlist, snake, direction, snake_len, danger, difficulty, score, player, head, level
 
     # Fish
     def fishcheck():
@@ -285,8 +285,19 @@ def update(dt):
                     if head[player] in fishlist:  # Schlange verlängern, falls man auf Fisch trifft
                         snake[player].insert(0, head[player])
                         snake_len[player] += 1
-                        if snake_len[player] == 392:
-                            gamestate = "win"
+                         if snake_len[player] == 10:
+                            level = 1
+                        elif snake_len[player] == 30:
+                            level = 2
+                        elif snake_len[player] == 70:
+                            level = 3
+                        elif snake_len[player] == 120:
+                            level = 4
+                        elif snake_len[player] == 180:
+                            level = 5
+                        elif snake_len[player] == 392:
+                            gamestate = "intro"
+                            
                     else:  # Schlange bewegen, gleiche Länge
                         snake[player].insert(0, head[player])
                         snake[player].pop(-1)
@@ -297,6 +308,7 @@ def update(dt):
     if gamestate == "intro" or gamestate == "gameover":
         direction[player] = 0  # Richtung auf 0 setzen, sonst bewegt sich die Figur wieder, wenn man zurück ins Spiel geht
         danger = [False, False]
+            level = 0
 
 
 # Starte Pygame Zero
