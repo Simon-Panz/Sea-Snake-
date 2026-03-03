@@ -40,7 +40,7 @@ automatic = [0, 0]		# automatischer Modus, 1 = Schlange bewegt sich von alleine
 fish = 0
 fishlist = []
 fish_amount = 5		# Menge an Fischen
-fish_move = 1		# 1 = Fische bewegen sich, 0 = Fische bewegen sich nicht
+fish_move = 0		# 1 = Fische bewegen sich, 0 = Fische bewegen sich nicht
 
 # 2 Spieler Modus, indem man gegeneinander spielt:
 player = 0
@@ -181,6 +181,8 @@ def on_key_down(key):
 def update(dt):
     global gamestate, fish, fishlist, snake, direction, snake_len, danger, difficulty, score, player, head, level
 
+        if level >= 3:
+                fish_move = 1
     # Fish
     def fishcheck():
         global fishlist, fish
@@ -309,6 +311,7 @@ def update(dt):
         direction[player] = 0  # Richtung auf 0 setzen, sonst bewegt sich die Figur wieder, wenn man zurück ins Spiel geht
         danger = [False, False]
             level = 0
+                fish_move = 0
 
 
 # Starte Pygame Zero
