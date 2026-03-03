@@ -210,7 +210,7 @@ def update(dt):
                 elif y > 13:
                     y = 0
                 # Fisch darf sich nicht in Schlange 1 oder 2 oder einen anderen Fisch bewegen
-                if {"x": x, "y": y} not in snake[0] and (player_amount == 2 and {"x": x, "y": y} not in snake[1]) and {"x": x, "y": y} not in fishlist:
+                if ({"x": x, "y": y} not in snake[0] and {"x": x, "y": y} not in fishlist and player_amount == 1) or (player_amount == 2 and {"x": x, "y": y} not in snake[0] and {"x": x, "y": y} not in snake[1] and {"x": x, "y": y} not in fishlist):
                     fishlist[n] = {"x": x, "y": y}
 
 
@@ -287,7 +287,7 @@ def update(dt):
                     if head[player] in fishlist:  # Schlange verlängern, falls man auf Fisch trifft
                         snake[player].insert(0, head[player])
                         snake_len[player] += 1
-                         if snake_len[player] == 10:
+                        if snake_len[player] == 10:
                             level = 1
                         elif snake_len[player] == 30:
                             level = 2
@@ -310,8 +310,8 @@ def update(dt):
     if gamestate == "intro" or gamestate == "gameover":
         direction[player] = 0  # Richtung auf 0 setzen, sonst bewegt sich die Figur wieder, wenn man zurück ins Spiel geht
         danger = [False, False]
-            level = 0
-                fish_move = 0
+        level = 0
+        fish_move = 0
 
 
 # Starte Pygame Zero
