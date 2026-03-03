@@ -226,7 +226,6 @@ def update(dt):
                 fish -= 1
                 fishlist.pop(fishlist.index(snake[player][0]))
                 sounds.chomp.play()
-                sounds.chewing.play()
                 score += 1
             fishcheck()
 
