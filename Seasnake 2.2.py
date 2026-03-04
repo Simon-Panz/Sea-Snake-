@@ -25,10 +25,10 @@ difficulty = "easy"
 danger = [False, False]
 
 # score:
-score = 0
+score = [0, 0]
 
 
-speed = (0.25)		# Geschwindigkeit der Schlange, Verzögerung in Sekunden
+speed = 0.25		# Geschwindigkeit der Schlange, Verzögerung in Sekunden
 
 level = 0
 
@@ -110,7 +110,7 @@ def draw():
 
 # Verarbeite gedrückte Taste (wird bei Tastendruck aufgerufen)
 def on_key_down(key):
-    global gamestate, direction, fish, fishlist, snake, snake_len, difficulty, player_amount
+    global gamestate, direction, fish, fishlist, snake, snake_len, difficulty, player_amount, wall_behavior, level, score
     # Beendet Programm, falls Escape-Taste gedrückt wurde
     if key == keys.ESCAPE and gamestate == "intro":
         Pyghthouse.close(conn)
@@ -129,6 +129,7 @@ def on_key_down(key):
     elif key == keys.K_3 and gamestate == "intro":
         player_amount = 2
         automatic[1] = 1
+        wall_behavior = 2
 
     # Mit Escape-Taste kommt man zurück zum Titelbild, falls man im Spiel ist
     elif key == keys.ESCAPE and gamestate == "game":
@@ -141,59 +142,78 @@ def on_key_down(key):
             snake = [[{"x": 14, "y": 7}]]	# Schlangenbeginn für 1 Spieler Modus festlegen
         elif player_amount == 2:
             snake = [[{"x": 20, "y": 7}],[{"x": 8, "y": 7}]]	# Schlangenbeginne für 2 Spieler Modus festlegen
-        direction[0] = 0
-        direction[1] = 0
+        direction = [0, 0]
         fishlist = []
         fish = 0
-        snake[player][1:] = []
-        snake_len[player] = 1
+        level = 0
+        snake_len = [1, 1]
+        score = [0, 0]
+        danger = [False, False]
         sounds.game_start.play()
-    # Richtung nach links ändern
-    elif (key == keys.LEFT) and direction[0] != "right":
-             direction[0] = "left"
-    # Richtung nach rechts ändern
-    elif (key == keys.RIGHT) and direction[0] != "left":
-             direction[0] = "right"
-    # Richtung nach unten ändern
-    elif (key == keys.DOWN) and direction[0] != "up":
-             direction[0] = "down"
-    # Richtung nach oben ändern
-    elif (key == keys.UP) and direction[0] != "down":
-             direction[0] = "up"
-    
-    # Richtung nach links ändern
-    elif (key == keys.A) and direction[1] != "right":
-             direction[1] = "left"
-    # Richtung nach rechts ändern
-    elif (key == keys.D) and direction[1] != "left":
-             direction[1] = "right"
-    # Richtung nach unten ändern
-    elif (key == keys.S) and direction[1] != "up":
-             direction[1] = "down"
-    # Richtung nach oben ändern
-    elif (key == keys.W) and direction[1] != "down":
-             direction[1] = "up"
+    # Steuerung für 1 Spieler Modus:
+    elif player_amount == 1:
+        if (key == keys.LEFT or key == keys.A) and direction[0] != "right":
+                 direction[0] = "left"
+        # Richtung nach rechts ändern
+        elif (key == keys.RIGHT or key == keys.D) and direction[0] != "left":
+                 direction[0] = "right"
+        # Richtung nach unten ändern
+        elif (key == keys.DOWN or key == keys.S) and direction[0] != "up":
+                 direction[0] = "down"
+        # Richtung nach oben ändern
+        elif (key == keys.UP or key == keys.W) and direction[0] != "down":
+                 direction[0] = "up"
+                 
+    # Steuerung für 2 Spieler Modus:
+    elif player_amount == 2:
+        # 1 Schlange steuern:
+        # Richtung nach links ändern
+        if key == keys.A and direction[1] != "right":
+                 direction[1] = "left"
+        # Richtung nach rechts ändern
+        elif key == keys.D and direction[1] != "left":
+                 direction[1] = "right"
+        # Richtung nach unten ändern
+        elif key == keys.S and direction[1] != "up":
+                 direction[1] = "down"
+        # Richtung nach oben ändern
+        elif key == keys.W and direction[1] != "down":
+                 direction[1] = "up"
+        
+        # 2 Schlange steuern:
+        # Richtung nach links ändern
+        elif key == keys.LEFT and direction[0] != "right":
+                 direction[0] = "left"
+        # Richtung nach rechts ändern
+        elif key == keys.RIGHT and direction[0] != "left":
+                 direction[0] = "right"
+        # Richtung nach unten ändern
+        elif key == keys.DOWN and direction[0] != "up":
+                 direction[0] = "down"
+        # Richtung nach oben ändern
+        elif key == keys.UP and direction[0] != "down":
+                 direction[0] = "up"
              
              
 
 
 # Aktualisiere Spielzustand (wird ca. 60-mal pro Sekunde aufgerufen)
 def update(dt):
-    global gamestate, fish, fishlist, snake, direction, snake_len, danger, difficulty, score, player, head, level
+    global gamestate, fish, fishlist, snake, direction, snake_len, danger, difficulty, score, player, head, level, fish_move, player_amount
 
-        if level >= 3:
-                fish_move = 1
+    if level >= 3:
+        fish_move = 1
     # Fish
     def fishcheck():
         global fishlist, fish
         
         while fish < fish_amount:	# erstellt so viele Fische, wie man vorher festlegt
             fish += 1
-            n = {"x": random.randint(0, 27), "y": random.randint(0, 13)}	# random Koordinaten generieren
-            if n in fishlist or n in snake[player]:	# neuer Fisch darf nicht auf einem anderen Fisch oder in der Schlange erscheinen
-                fish -= 1
+            pos = {"x": random.randint(0, 27), "y": random.randint(0, 13)}	# random Koordinaten generieren
+            if (player_amount == 1 and pos not in snake[0] and pos not in fishlist) or (player_amount == 2 and pos not in snake[0] and pos not in snake[1] and pos not in fishlist):	# neuer Fisch darf nicht auf einem anderen Fisch oder in der Schlange erscheinen
+                fishlist.append(pos)	# Fisch an die Liste aller Fische anhängen
             else:
-                fishlist.append(n)	# Fisch an die Liste aller Fische anhängen
+                fish -= 1
 
     def fishmove():		# Fische können sich random bewegen
         global fishlist
@@ -210,8 +230,9 @@ def update(dt):
                 elif y > 13:
                     y = 0
                 # Fisch darf sich nicht in Schlange 1 oder 2 oder einen anderen Fisch bewegen
-                if ({"x": x, "y": y} not in snake[0] and {"x": x, "y": y} not in fishlist and player_amount == 1) or (player_amount == 2 and {"x": x, "y": y} not in snake[0] and {"x": x, "y": y} not in snake[1] and {"x": x, "y": y} not in fishlist):
-                    fishlist[n] = {"x": x, "y": y}
+                pos = {"x": x, "y": y}
+                if (player_amount == 1 and pos not in snake[0] and pos not in fishlist) or (player_amount == 2 and pos not in snake[0] and pos not in snake[1] and pos not in fishlist):
+                    fishlist[n] = pos
 
 
     if gamestate == "game":
@@ -228,7 +249,7 @@ def update(dt):
                 fish -= 1
                 fishlist.pop(fishlist.index(snake[player][0]))
                 sounds.chomp.play()
-                score += 1
+                score[player] += 1
             fishcheck()
 
 
@@ -237,7 +258,7 @@ def update(dt):
 
             # ein automatischer Schlangenmodus, wo sich die Schlange automatisch random bewegt:
             if automatic[player] == 1:
-                if random.randint(0,10) == 5:
+                if random.randint(1,10) == 5:
                     a = random.choice(["left","right","up","down"])
                     if (a == "left" and direction[player] == "right") or (a == "right" and direction[player] == "left") or (a == "up" and direction[player] == "down")or (a == "down" and direction[player] == "up"):
                         pass
@@ -287,15 +308,15 @@ def update(dt):
                     if head[player] in fishlist:  # Schlange verlängern, falls man auf Fisch trifft
                         snake[player].insert(0, head[player])
                         snake_len[player] += 1
-                        if snake_len[player] == 10:
+                        if snake_len[player] == 5:
                             level = 1
-                        elif snake_len[player] == 30:
+                        elif snake_len[player] == 10:
                             level = 2
-                        elif snake_len[player] == 70:
+                        elif snake_len[player] == 15:
                             level = 3
-                        elif snake_len[player] == 120:
+                        elif snake_len[player] == 20:
                             level = 4
-                        elif snake_len[player] == 180:
+                        elif snake_len[player] == 25:
                             level = 5
                         elif snake_len[player] == 392:
                             gamestate = "intro"
@@ -306,13 +327,19 @@ def update(dt):
                     # gameover wenn der Schlangenkopf den eigenen Schwanz trifft:(erst nach dem löschen des vorherigen Endes möglich)
                     if head[player] in snake[player][1:]:
                         gamestate = "gameover"
-
-    if gamestate == "intro" or gamestate == "gameover":
-        direction[player] = 0  # Richtung auf 0 setzen, sonst bewegt sich die Figur wieder, wenn man zurück ins Spiel geht
-        danger = [False, False]
-        level = 0
-        fish_move = 0
+                    # im 2 Spieler Modus prüfen, ob die Schlangen sich gegenseitig treffen:
+                    if player_amount == 2:
+                        if player == 0:
+                            if head[player] in snake[1][1:]:	# Spieler 1 trifft auf Schlange von Spieler 2
+                                gamestate = "gameover"
+                        elif player == 1:
+                            if head[player] in snake[0][1:]:	# Spieler 2 trifft auf Schlange von Spieler 1
+                                gamestate = "gameover"
+                        if snake[0][0] == snake[1][0]:	# wenn beide Köpfe aufeinander treffen, dann ist gameover, beide haben verloren
+                            gamestate = "gameover"
+        
 
 
 # Starte Pygame Zero
 pgzrun.go()
+
