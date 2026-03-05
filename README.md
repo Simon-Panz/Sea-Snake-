@@ -21,3 +21,4 @@ R: Im Startbildschirm Schwierigkeit auf hard stellen
 4: Im Startbildschrim Spielerzahl auf 2 stellen, beide Schlangen bewegen sich automatisch
 
 Anmerkung: Für das Scoreboard kurz im Game Over Screen warten
+Der Sieger im 2 Spieler Modus ist mit einem Ausrufezeichen hinter dem Score markiert
