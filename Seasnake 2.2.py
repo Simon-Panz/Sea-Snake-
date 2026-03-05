@@ -14,6 +14,7 @@ Pyghthouse.start(conn)
 
 # Globale Variablen für das Spiel:
 gamestate = "intro"	# Spielstatus zu Beginn "intro"
+gameover_following = False
 
 snake = [[{"x": 14, "y": 7}]]
 direction = [0, 0]		# zu Beginn keine Richtung
@@ -103,7 +104,7 @@ def draw():
     elif gamestate == "score":
         # nur einmal 5 Sekunden warten:
         if score_displayed == 0:
-            sleep(1)
+            sleep(3)
             score_displayed += 1
         gamestate_score(image, score, player_amount, winner)
 
@@ -120,7 +121,7 @@ def draw():
 
 # Verarbeite gedrückte Taste (wird bei Tastendruck aufgerufen)
 def on_key_down(key):
-    global gamestate, direction, fish, fishlist, snake, snake_len, difficulty, player_amount, wall_behavior, level, score
+    global gamestate, direction, fish, fishlist, snake, snake_len, difficulty, player_amount, wall_behavior, level, score, danger, automatic
     # Beendet Programm, falls Escape-Taste gedrückt wurde
     if key == keys.ESCAPE and gamestate == "intro":
         Pyghthouse.close(conn)
@@ -136,10 +137,15 @@ def on_key_down(key):
     elif key == keys.K_2 and gamestate == "intro":
         player_amount = 2
         automatic[1] = 0
+        wall_behavior = 1
     # 2 Spieler Modus, bei dem sich die zweite Schlange automatisch bewegt:
     elif key == keys.K_3 and gamestate == "intro":
         player_amount = 2
         automatic[1] = 1
+        wall_behavior = 2
+    elif key == keys.K_4 and gamestate == "intro":
+        player_amount = 2
+        automatic = [1, 1]
         wall_behavior = 2
 
     # Mit Escape-Taste kommt man zurück zum Titelbild, falls man im Spiel ist
@@ -152,7 +158,7 @@ def on_key_down(key):
         if player_amount == 1:
             snake = [[{"x": 14, "y": 7}]]	# Schlangenbeginn für 1 Spieler Modus festlegen
         elif player_amount == 2:
-            snake = [[{"x": 20, "y": 7}],[{"x": 8, "y": 7}]]	# Schlangenbeginne für 2 Spieler Modus festlegen
+            snake = [[{"x": 20, "y": 7}],[{"x": 7, "y": 7}]]	# Schlangenbeginne für 2 Spieler Modus festlegen
         direction = [0, 0]
         fishlist = []
         fish = 0
@@ -210,7 +216,7 @@ def on_key_down(key):
 
 # Aktualisiere Spielzustand (wird ca. 60-mal pro Sekunde aufgerufen)
 def update(dt):
-    global gamestate, fish, fishlist, snake, direction, snake_len, danger, difficulty, score, player, head, level, fish_move, player_amount, winner
+    global gamestate, fish, fishlist, snake, direction, snake_len, danger, difficulty, score, player, head, level, fish_move, player_amount, winner, gameover_following
 
     if level >= 3:
         fish_move = 1
@@ -244,8 +250,14 @@ def update(dt):
                 pos = {"x": x, "y": y}
                 if (player_amount == 1 and pos not in snake[0] and pos not in fishlist) or (player_amount == 2 and pos not in snake[0] and pos not in snake[1] and pos not in fishlist):
                     fishlist[n] = pos
+    
+    # in gameover schalten, wenn gameover_following True ist, damit noch ein zyklus gemalt wird, bewor gameover ist
+    if gameover_following == True:
+            gamestate = "gameover"
+            sounds.explosion.play()
+            gameover_following = False
 
-
+    # game updaten:
     if gamestate == "game":
         
         for player in range(len(snake)):
@@ -310,8 +322,7 @@ def update(dt):
                         if danger[player] == False:
                             danger[player] = True
                         else:
-                            sounds.explosion.play()
-                            gamestate = "gameover"
+                            gameover_following = True
                             if player == 0:
                                 winner = "player2"
                             else: winner = "player1"
@@ -325,15 +336,16 @@ def update(dt):
                     if head[player] in fishlist:  # Schlange verlängern, falls man auf Fisch trifft
                         snake[player].insert(0, head[player])
                         snake_len[player] += 1
+                        # Level werden festgelegt, abhängig von der Schlangenlänge:
                         if snake_len[player] == 5:
                             level = 1
                         elif snake_len[player] == 10:
                             level = 2
                         elif snake_len[player] == 15:
                             level = 3
-                        elif snake_len[player] == 20:
+                        elif snake_len[player] == 30:
                             level = 4
-                        elif snake_len[player] == 25:
+                        elif snake_len[player] == 100:
                             level = 5
                         elif snake_len[player] == 392:
                             gamestate = "intro"
@@ -343,7 +355,7 @@ def update(dt):
                         snake[player].pop(-1)
                     # gameover wenn der Schlangenkopf den eigenen Schwanz trifft:(erst nach dem löschen des vorherigen Endes möglich)
                     if head[player] in snake[player][1:]:
-                        gamestate = "gameover"
+                        gameover_following = True
                         if player == 0:
                             winner = "player2"
                         else: winner = "player1"
@@ -352,14 +364,14 @@ def update(dt):
                         if player == 0:
                             if head[player] in snake[1][1:]:	# Spieler 1 trifft auf Schlange von Spieler 2
                                 winner = "player2"
-                                gamestate = "gameover"
+                                gameover_following = True
                         elif player == 1:
                             if head[player] in snake[0][1:]:	# Spieler 2 trifft auf Schlange von Spieler 1
                                 winner = "player1"
-                                gamestate = "gameover"
+                                gameover_following = True
                         if snake[0][0] == snake[1][0]:	# wenn beide Köpfe aufeinander treffen, dann ist gameover, beide haben verloren
                             winner = "nowinner"
-                            gamestate = "gameover"
+                            gameover_following = True
         
 
 
