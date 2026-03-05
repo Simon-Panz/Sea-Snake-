@@ -220,6 +220,7 @@ def update(dt):
 
     if level >= 3:
         fish_move = 1
+    else: fish_move = 0
     # Fish
     def fishcheck():
         global fishlist, fish
