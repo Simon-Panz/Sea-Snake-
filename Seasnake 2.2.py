@@ -308,15 +308,15 @@ def update(dt):
                     if head[player] in fishlist:  # Schlange verlängern, falls man auf Fisch trifft
                         snake[player].insert(0, head[player])
                         snake_len[player] += 1
-                        if snake_len[player] == 5:
+                        if snake_len[player] == 10:
                             level = 1
-                        elif snake_len[player] == 10:
-                            level = 2
-                        elif snake_len[player] == 15:
-                            level = 3
-                        elif snake_len[player] == 20:
-                            level = 4
                         elif snake_len[player] == 25:
+                            level = 2
+                        elif snake_len[player] == 50:
+                            level = 3
+                        elif snake_len[player] == 100:
+                            level = 4
+                        elif snake_len[player] == 180:
                             level = 5
                         elif snake_len[player] == 392:
                             gamestate = "intro"
