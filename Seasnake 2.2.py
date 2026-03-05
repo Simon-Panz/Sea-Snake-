@@ -12,13 +12,13 @@ HEIGHT = 700
 conn = Pyghthouse(username, token)
 Pyghthouse.start(conn)
 
-# Globale Variablen für das Spiel
+# Globale Variablen für das Spiel:
 gamestate = "intro"	# Spielstatus zu Beginn "intro"
 
 snake = [[{"x": 14, "y": 7}]]
 direction = [0, 0]		# zu Beginn keine Richtung
 snake_len = [1, 1]      # schlangelänge zu Beginn
-head = [0, 0]
+head = [0, 0]			# head definieren, damit wir ihn später ändern können
 
 # Schwierigkeitsgrad:
 difficulty = "easy"
@@ -26,11 +26,11 @@ danger = [False, False]
 
 # score:
 score = [0, 0]
-
+score_displayed = 0		# Variable, damit bei der score-Ausgabe nur einmal 5 Sekunden gewartet wird
 
 speed = 0.25		# Geschwindigkeit der Schlange, Verzögerung in Sekunden
 
-level = 0
+level = 0		# Level, bedingt die Geschwindigkeit und die bewegenden Fische
 
 wall_behavior = 1		# 1 = Schlange stirbt bei Wand, 2 = Schlange kann durch die Wand gehen und kommt an der anderen seite wieder raus
 
@@ -38,15 +38,15 @@ automatic = [0, 0]		# automatischer Modus, 1 = Schlange bewegt sich von alleine
 
 # Fish
 fish = 0
-fishlist = []
+fishlist = []		# Liste der Fische
 fish_amount = 5		# Menge an Fischen
 fish_move = 0		# 1 = Fische bewegen sich, 0 = Fische bewegen sich nicht
 
 # 2 Spieler Modus, indem man gegeneinander spielt:
-player = 0
+player = 0				# Zähler des aktiven Players
 player_amount = 1		# Anzahl der Spieler
 
-
+winner = ""		# Variable um den Sieger festzuhalten
 
 # Funktion für blauen Farbverlauf
 def blue(y):
@@ -56,7 +56,7 @@ def blue(y):
 # Zeichne Bildschirm (wird ca. 60-mal pro Sekunde aufgerufen)
 def draw():
     
-    global gamestate, direction, snake, speed
+    global gamestate, direction, snake, speed, score_displayed, player_amount
     black = (0, 0, 0)
     red = (255, 0, 0)
     white = (255, 255, 255)
@@ -90,12 +90,22 @@ def draw():
                 else:
                     image[snake[player][n]["y"]][snake[player][n]["x"]] = red
     
-        sleep(speed)		#Geschwindigkeit vom snake
+        sleep(speed)		#Geschwindigkeit von der snake
         speed = (0.25 - 0.02 * level)
         
     # Game Over Screen
     elif gamestate == "gameover":
         gamestate_gameover(image, black, red)
+        gamestate = "score"
+        score_displayed = 0
+        
+    # Score-Screen:
+    elif gamestate == "score":
+        # nur einmal 5 Sekunden warten:
+        if score_displayed == 0:
+            sleep(1)
+            score_displayed += 1
+        gamestate_score(image, score, player_amount, winner)
 
     # Schicke aktuelles Bild an Lighthouse-Server
     Pyghthouse.set_image(conn, image)
@@ -125,6 +135,7 @@ def on_key_down(key):
         player_amount = 1
     elif key == keys.K_2 and gamestate == "intro":
         player_amount = 2
+        automatic[1] = 0
     # 2 Spieler Modus, bei dem sich die zweite Schlange automatisch bewegt:
     elif key == keys.K_3 and gamestate == "intro":
         player_amount = 2
@@ -134,8 +145,8 @@ def on_key_down(key):
     # Mit Escape-Taste kommt man zurück zum Titelbild, falls man im Spiel ist
     elif key == keys.ESCAPE and gamestate == "game":
         gamestate = "intro"
-    # Mit Space-Taste kommt man ins Spiel, wenn man gerade nicht im Spiel ist, mit esc aus dem Todesscreen ins Spiel
-    elif key == keys.SPACE and gamestate != "game" or key == keys.ESCAPE and gamestate == "gameover":
+    # Mit Space-Taste kommt man ins Spiel, wenn man gerade nicht im Spiel ist, mit esc aus dem Todesscreen, scorescreen ins Spiel
+    elif key == keys.SPACE and gamestate != "game" or key == keys.ESCAPE and (gamestate == "gameover" or gamestate == "score"):
         gamestate = "game"
         
         if player_amount == 1:
@@ -199,7 +210,7 @@ def on_key_down(key):
 
 # Aktualisiere Spielzustand (wird ca. 60-mal pro Sekunde aufgerufen)
 def update(dt):
-    global gamestate, fish, fishlist, snake, direction, snake_len, danger, difficulty, score, player, head, level, fish_move, player_amount
+    global gamestate, fish, fishlist, snake, direction, snake_len, danger, difficulty, score, player, head, level, fish_move, player_amount, winner
 
     if level >= 3:
         fish_move = 1
@@ -242,7 +253,10 @@ def update(dt):
             # Hard Diff delayed Death
             if difficulty == "hard" and danger[player] == True:
                 gamestate = "gameover"
-
+                sounds.explosion.play()
+                if player == 0:
+                    winner = "player2"
+                else: winner = "player1"
                 
             # CONSUME:
             if snake[player][0] in fishlist:
@@ -298,6 +312,9 @@ def update(dt):
                         else:
                             sounds.explosion.play()
                             gamestate = "gameover"
+                            if player == 0:
+                                winner = "player2"
+                            else: winner = "player1"
                             
                     else:
                         danger[player] = True
@@ -308,15 +325,15 @@ def update(dt):
                     if head[player] in fishlist:  # Schlange verlängern, falls man auf Fisch trifft
                         snake[player].insert(0, head[player])
                         snake_len[player] += 1
-                        if snake_len[player] == 10:
+                        if snake_len[player] == 5:
                             level = 1
-                        elif snake_len[player] == 25:
+                        elif snake_len[player] == 10:
                             level = 2
-                        elif snake_len[player] == 50:
+                        elif snake_len[player] == 15:
                             level = 3
-                        elif snake_len[player] == 100:
+                        elif snake_len[player] == 20:
                             level = 4
-                        elif snake_len[player] == 180:
+                        elif snake_len[player] == 25:
                             level = 5
                         elif snake_len[player] == 392:
                             gamestate = "intro"
@@ -327,15 +344,21 @@ def update(dt):
                     # gameover wenn der Schlangenkopf den eigenen Schwanz trifft:(erst nach dem löschen des vorherigen Endes möglich)
                     if head[player] in snake[player][1:]:
                         gamestate = "gameover"
+                        if player == 0:
+                            winner = "player2"
+                        else: winner = "player1"
                     # im 2 Spieler Modus prüfen, ob die Schlangen sich gegenseitig treffen:
                     if player_amount == 2:
                         if player == 0:
                             if head[player] in snake[1][1:]:	# Spieler 1 trifft auf Schlange von Spieler 2
+                                winner = "player2"
                                 gamestate = "gameover"
                         elif player == 1:
                             if head[player] in snake[0][1:]:	# Spieler 2 trifft auf Schlange von Spieler 1
+                                winner = "player1"
                                 gamestate = "gameover"
                         if snake[0][0] == snake[1][0]:	# wenn beide Köpfe aufeinander treffen, dann ist gameover, beide haben verloren
+                            winner = "nowinner"
                             gamestate = "gameover"
         
 
